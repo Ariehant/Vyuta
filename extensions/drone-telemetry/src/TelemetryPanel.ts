@@ -1,13 +1,9 @@
 // Singleton webview panel hosting the Vyuta telemetry cockpit.
 //
-// Phase 0 responsibilities:
-//   * own the webview lifecycle (create / reveal / dispose)
-//   * build a locked-down HTML document with a strict CSP that permits a
-//     WebSocket connection to the configured gateway URL
-//   * hand the webview the gateway URL so its client script can connect
-//
-// The actual connection + rendering happens in `media/main.js` inside the
-// webview; the extension host side stays thin.
+// Phase 1: builds the cockpit HTML (artificial horizon canvas, Leaflet GPS
+// map, battery gauge, status + alarm banner), wires a strict CSP that allows
+// the telemetry WebSocket and OpenStreetMap tiles, and injects the runtime
+// configuration. Rendering + the socket live in the webview scripts.
 
 import * as vscode from "vscode";
 
@@ -52,10 +48,9 @@ export class TelemetryPanel {
     this.render();
     this.panel.onDidDispose(() => this.onDispose(), null, this.disposables);
 
-    // Re-render if the user changes the gateway URL setting.
     vscode.workspace.onDidChangeConfiguration(
       (e) => {
-        if (e.affectsConfiguration("vyuta.telemetry.gatewayUrl")) {
+        if (e.affectsConfiguration("vyuta.telemetry")) {
           this.render();
         }
       },
@@ -68,28 +63,38 @@ export class TelemetryPanel {
     this.panel.webview.html = this.getHtml(this.panel.webview);
   }
 
-  private getHtml(webview: vscode.Webview): string {
-    const gatewayUrl = vscode.workspace
-      .getConfiguration("vyuta.telemetry")
-      .get<string>("gatewayUrl", "ws://127.0.0.1:9876");
+  private mediaUri(webview: vscode.Webview, ...path: string[]): vscode.Uri {
+    return webview.asWebviewUri(
+      vscode.Uri.joinPath(this.extensionUri, "media", ...path)
+    );
+  }
 
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, "media", "main.js")
-    );
-    const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, "media", "main.css")
-    );
+  private getHtml(webview: vscode.Webview): string {
+    const cfg = vscode.workspace.getConfiguration("vyuta.telemetry");
+    const config = {
+      gatewayUrl: cfg.get<string>("gatewayUrl", "ws://127.0.0.1:9876"),
+      batteryWarnPercent: cfg.get<number>("batteryWarnPercent", 25),
+      batteryCriticalPercent: cfg.get<number>("batteryCriticalPercent", 15),
+      audibleAlarms: cfg.get<boolean>("audibleAlarms", true),
+    };
+
+    const leafletCss = this.mediaUri(webview, "vendor", "leaflet", "leaflet.css");
+    const leafletJs = this.mediaUri(webview, "vendor", "leaflet", "leaflet.js");
+    const styleUri = this.mediaUri(webview, "main.css");
+    const attitudeUri = this.mediaUri(webview, "attitude.js");
+    const mapUri = this.mediaUri(webview, "map.js");
+    const cockpitUri = this.mediaUri(webview, "cockpit.js");
 
     const nonce = getNonce();
 
-    // Strict CSP. connect-src must allow the configured ws/wss gateway so the
-    // webview client can open the telemetry socket.
+    // OpenStreetMap raster tiles are loaded as <img>, so they need img-src.
+    // Leaflet sets element style attributes, requiring 'unsafe-inline' styles.
     const csp = [
       `default-src 'none'`,
-      `style-src ${webview.cspSource}`,
+      `img-src ${webview.cspSource} data: blob: https://*.tile.openstreetmap.org`,
+      `style-src ${webview.cspSource} 'unsafe-inline'`,
       `script-src 'nonce-${nonce}'`,
       `connect-src ws: wss:`,
-      `img-src ${webview.cspSource} data:`,
     ].join("; ");
 
     return /* html */ `<!DOCTYPE html>
@@ -98,6 +103,7 @@ export class TelemetryPanel {
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="${leafletCss}" rel="stylesheet" />
   <link href="${styleUri}" rel="stylesheet" />
   <title>Vyuta Telemetry</title>
 </head>
@@ -105,33 +111,52 @@ export class TelemetryPanel {
   <header class="vyuta-header">
     <h1>Vyuta Telemetry</h1>
     <span id="status" class="status status--connecting">connecting…</span>
-    <span id="synthetic-badge" class="badge hidden">SYNTHETIC</span>
+    <span id="source-badge" class="badge hidden"></span>
+    <span id="mode" class="pill">—</span>
+    <span id="armed" class="pill pill--armed hidden">ARMED</span>
   </header>
 
+  <div id="alarm" class="alarm hidden" role="alert"></div>
+
   <main class="cockpit">
-    <section class="card">
+    <section class="card card--horizon">
       <h2>Attitude</h2>
-      <dl class="readout">
+      <div class="horizon-wrap"><canvas id="horizon"></canvas></div>
+      <dl class="readout readout--inline">
         <dt>Roll</dt><dd id="roll">—</dd>
         <dt>Pitch</dt><dd id="pitch">—</dd>
-        <dt>Yaw</dt><dd id="yaw">—</dd>
+        <dt>Hdg</dt><dd id="heading">—</dd>
       </dl>
     </section>
-    <section class="card">
+
+    <section class="card card--map">
       <h2>Position</h2>
-      <dl class="readout">
+      <div id="map"></div>
+      <dl class="readout readout--inline">
         <dt>Lat</dt><dd id="lat">—</dd>
         <dt>Lon</dt><dd id="lon">—</dd>
         <dt>Alt</dt><dd id="alt">—</dd>
       </dl>
     </section>
+
     <section class="card">
-      <h2>Battery / Status</h2>
+      <h2>Battery</h2>
+      <div class="gauge"><div id="battery-fill" class="gauge-fill"></div><span id="battery-pct-label" class="gauge-label">—</span></div>
       <dl class="readout">
         <dt>Voltage</dt><dd id="battery_v">—</dd>
-        <dt>Charge</dt><dd id="battery_pct">—</dd>
-        <dt>Mode</dt><dd id="mode">—</dd>
-        <dt>Armed</dt><dd id="armed">—</dd>
+        <dt>Current</dt><dd id="current">—</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Air data / Link</h2>
+      <dl class="readout">
+        <dt>Groundspeed</dt><dd id="groundspeed">—</dd>
+        <dt>Airspeed</dt><dd id="airspeed">—</dd>
+        <dt>Climb</dt><dd id="climb">—</dd>
+        <dt>Throttle</dt><dd id="throttle">—</dd>
+        <dt>Status</dt><dd id="system_status">—</dd>
+        <dt>Link</dt><dd id="link">—</dd>
       </dl>
     </section>
   </main>
@@ -139,13 +164,16 @@ export class TelemetryPanel {
   <footer class="vyuta-footer">
     <span>gateway: <code id="gateway-url"></code></span>
     <span>frames: <code id="frame-count">0</code></span>
-    <span class="phase-note">Phase 0 scaffold — Three.js attitude + Leaflet map arrive in Phase 1.</span>
+    <span>rate: <code id="frame-rate">0</code> Hz</span>
   </footer>
 
   <script nonce="${nonce}">
-    window.__VYUTA_GATEWAY_URL__ = ${JSON.stringify(gatewayUrl)};
+    window.__VYUTA__ = ${JSON.stringify(config)};
   </script>
-  <script nonce="${nonce}" src="${scriptUri}"></script>
+  <script nonce="${nonce}" src="${leafletJs}"></script>
+  <script nonce="${nonce}" src="${attitudeUri}"></script>
+  <script nonce="${nonce}" src="${mapUri}"></script>
+  <script nonce="${nonce}" src="${cockpitUri}"></script>
 </body>
 </html>`;
   }

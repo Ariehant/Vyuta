@@ -1,7 +1,7 @@
 {
   "name": "drone-telemetry",
   "displayName": "Vyuta Drone Telemetry",
-  "description": "Real-time MAVLink telemetry cockpit for the Vyuta drone IDE (Phase 0 scaffold).",
+  "description": "Real-time MAVLink telemetry cockpit for the Vyuta drone IDE.",
   "version": "0.1.0",
   "publisher": "vyuta",
   "private": true,
@@ -29,17 +29,34 @@
           "type": "string",
           "default": "ws://127.0.0.1:9876",
           "description": "WebSocket URL of the maestros telemetry gateway sidecar."
+        },
+        "vyuta.telemetry.batteryWarnPercent": {
+          "type": "number",
+          "default": 25,
+          "description": "Battery charge (%) below which a warning alarm is raised."
+        },
+        "vyuta.telemetry.batteryCriticalPercent": {
+          "type": "number",
+          "default": 15,
+          "description": "Battery charge (%) below which a critical alarm is raised."
+        },
+        "vyuta.telemetry.audibleAlarms": {
+          "type": "boolean",
+          "default": true,
+          "description": "Play a tone when a critical alarm (low battery / link loss) is active."
         }
       }
     }
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "vendor": "mkdir -p media/vendor/leaflet && cp node_modules/leaflet/dist/leaflet.js node_modules/leaflet/dist/leaflet.css media/vendor/leaflet/"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.125.0",
+    "leaflet": "^1.9.4",
     "typescript": "^5.6.0"
   }
 }

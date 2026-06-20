@@ -2,10 +2,17 @@
 
 Real-time MAVLink telemetry cockpit for the **Vyuta** drone IDE.
 
-**Phase 0 scaffold:** opens a webview that connects to the `maestros` telemetry
-gateway sidecar over a JSON WebSocket and shows a live attitude / position /
-battery readout. Phase 1 grows this into a Three.js attitude indicator and a
-Leaflet GPS map fed by FlatBuffers.
+Opens a webview that connects to the `maestros` telemetry gateway over a
+WebSocket and renders a live cockpit:
+
+- **Artificial horizon** attitude indicator (Canvas 2D)
+- **GPS map** (Leaflet) with a heading-rotated vehicle marker + breadcrumb trail
+- **Battery gauge**, armed/flight-mode indicators, air-data readouts
+- **Alarm system** — low battery and link-loss raise a visual banner (and an
+  optional audible tone)
+
+Data is decoded from real MAVLink by the `maestros` sidecar (PX4 + Gazebo
+target); with no link configured it falls back to synthetic telemetry.
 
 ## Commands
 

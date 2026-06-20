@@ -18,7 +18,7 @@ Transform the forked VS Code into a drone development cockpit:
 | Phase | Title                                           | Status         |
 | ----- | ----------------------------------------------- | -------------- |
 | 0     | Project scaffold & architecture setup           | ✅ Complete     |
-| 1     | MAVLink telemetry engine & real-time dashboard  | ⬜ Not started  |
+| 1     | MAVLink telemetry engine & real-time dashboard  | ✅ Complete     |
 | 2     | Flight-controller firmware integration          | ⬜ Not started  |
 | 3     | Simulation control panel (SITL + Gazebo)        | ⬜ Not started  |
 | 4     | Parameter tuning panel                          | ⬜ Not started  |
@@ -34,7 +34,10 @@ Transform the forked VS Code into a drone development cockpit:
 Monorepo, Rust workspace, extension skeleton, and a verified Rust→TS WebSocket.
 Details and verification in [`phase-0.md`](./phase-0.md).
 
-## Phase 1 — MAVLink Telemetry Engine & Real-Time Dashboard
+## Phase 1 — MAVLink Telemetry Engine & Real-Time Dashboard ✅
+
+Live MAVLink decode + real-time cockpit (artificial horizon, GPS map, battery,
+alarms). Details and verification in [`phase-1.md`](./phase-1.md).
 
 - **`maestros` sidecar:** listen on UDP/TCP, decode `HEARTBEAT`, `ATTITUDE`,
   `GLOBAL_POSITION_INT`, `BATTERY_STATUS`, `VFR_HUD`; serialize with FlatBuffers;

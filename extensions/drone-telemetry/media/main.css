@@ -13,20 +13,20 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 0;
+  padding: 0.6rem 0;
   position: sticky;
   top: 0;
+  z-index: 500;
   background: var(--vscode-editor-background);
   border-bottom: 1px solid var(--vscode-panel-border);
 }
-
 .vyuta-header h1 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin: 0;
 }
 
 .status {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   padding: 0.15rem 0.5rem;
   border-radius: 1rem;
   text-transform: uppercase;
@@ -37,17 +37,49 @@ body {
 .status--disconnected { background: #c62828; color: #fff; }
 
 .badge {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   padding: 0.1rem 0.4rem;
-  border: 1px dashed var(--vscode-descriptionForeground);
   border-radius: 0.25rem;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--vscode-descriptionForeground);
   color: var(--vscode-descriptionForeground);
 }
-.hidden { display: none; }
+.badge--synthetic { border-style: dashed; }
+.badge--mavlink { border-color: #2e7d32; color: #4caf50; }
+
+.pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.3rem;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+.pill--armed { background: #c62828; color: #fff; }
+
+.hidden { display: none !important; }
+
+.alarm {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.alarm--warn { background: #b8860b; color: #fff; }
+.alarm--critical {
+  background: #c62828;
+  color: #fff;
+  animation: vyuta-flash 0.8s steps(1) infinite;
+}
+@keyframes vyuta-flash {
+  50% { background: #7a1414; }
+}
 
 .cockpit {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -57,13 +89,67 @@ body {
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--vscode-editorWidget-background);
+  min-width: 0;
 }
 .card h2 {
   margin: 0 0 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--vscode-descriptionForeground);
+}
+
+.horizon-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+  max-height: 320px;
+}
+#horizon { display: block; }
+
+#map {
+  height: 280px;
+  border-radius: 0.4rem;
+  background: #2a2a2a;
+}
+
+/* Vehicle marker (DivIcon) — heading-rotated arrow. */
+.vehicle-arrow {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 18px solid #ffcc00;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7));
+}
+
+.gauge {
+  position: relative;
+  height: 1.5rem;
+  border-radius: 0.4rem;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-panel-border);
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+}
+.gauge-fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.25s ease;
+}
+.gauge-fill--ok { background: #2e7d32; }
+.gauge-fill--warn { background: #b8860b; }
+.gauge-fill--crit { background: #c62828; }
+.gauge-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
 
 .readout {
@@ -72,13 +158,17 @@ body {
   gap: 0.25rem 1rem;
   margin: 0;
 }
+.readout--inline {
+  grid-template-columns: repeat(3, auto 1fr);
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+}
 .readout dt { color: var(--vscode-descriptionForeground); }
 .readout dd {
   margin: 0;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-.readout dd.armed { color: #ff5252; }
 
 .vyuta-footer {
   display: flex;
@@ -87,7 +177,6 @@ body {
   margin-top: 1rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--vscode-panel-border);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--vscode-descriptionForeground);
 }
-.phase-note { font-style: italic; }
