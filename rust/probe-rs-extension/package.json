@@ -1,0 +1,15 @@
+{
+  "name": "@vyuta/probe-rs-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Neon addon wrapping probe-rs for the Vyuta debug bridge (Phase 0 scaffold).",
+  "main": "index.cjs",
+  "files": [
+    "index.cjs",
+    "index.node"
+  ],
+  "scripts": {
+    "build": "cargo build --release --manifest-path Cargo.toml && node -e \"require('node:fs').copyFileSync(require('node:path').join('..','target','release', process.platform==='darwin'?'libvyuta_probe_rs.dylib':process.platform==='win32'?'vyuta_probe_rs.dll':'libvyuta_probe_rs.so'),'index.node')\"",
+    "build:debug": "cargo build --manifest-path Cargo.toml && node -e \"require('node:fs').copyFileSync(require('node:path').join('..','target','debug', process.platform==='darwin'?'libvyuta_probe_rs.dylib':process.platform==='win32'?'vyuta_probe_rs.dll':'libvyuta_probe_rs.so'),'index.node')\""
+  }
+}

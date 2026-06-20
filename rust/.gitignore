@@ -1,0 +1,5 @@
+# Cargo build output for the Vyuta Rust workspace.
+/target
+
+# Built Neon native addon (produced by `npm run build`).
+probe-rs-extension/index.node

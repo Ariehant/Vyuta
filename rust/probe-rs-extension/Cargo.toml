@@ -1,0 +1,22 @@
+[package]
+name = "probe-rs-extension"
+version = "0.1.0"
+edition = "2021"
+description = "Vyuta debug bridge: Neon (Node N-API) addon wrapping probe-rs (Phase 0 scaffold)."
+license = "MIT"
+
+[lib]
+name = "vyuta_probe_rs"
+# Neon addons are loaded by Node as a dynamic library (.node == cdylib).
+crate-type = ["cdylib"]
+
+[dependencies]
+neon = "1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# NOTE (Phase 2): the real debug bridge adds:
+#   probe-rs = "0.24"
+# which enumerates probes and drives DAP debug sessions. It is deferred from
+# the Phase 0 scaffold because it pulls in USB system libraries; the exported
+# `listProbes` function returns a synthetic list until then. See docs/phase-0.md.
