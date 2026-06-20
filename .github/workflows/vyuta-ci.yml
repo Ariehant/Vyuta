@@ -76,7 +76,7 @@ jobs:
             echo "::notice::extensions/drone-telemetry not present on this ref — skipping"
           fi
       - if: steps.detect.outputs.present == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
       - name: Install
