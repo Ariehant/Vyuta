@@ -26,7 +26,7 @@ jobs:
     name: Rust workspace
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Detect rust workspace
         id: detect
         run: |
@@ -65,7 +65,7 @@ jobs:
     name: drone-telemetry extension
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Detect extension
         id: detect
         run: |
