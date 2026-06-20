@@ -118,7 +118,7 @@ fn synthesize(seq: u64, t_ms: u128) -> TelemetryFrame {
         alt_m: 10.0 + 2.0 * (t * 0.4).sin(),
         battery_v: 16.8 - (t * 0.01).min(4.0),
         battery_pct: (100.0 - t * 0.5).max(0.0),
-        armed: (t as u64 / 5) % 2 == 0,
+        armed: (t as u64 / 5).is_multiple_of(2),
         mode: "HOLD",
         synthetic: true,
     }
