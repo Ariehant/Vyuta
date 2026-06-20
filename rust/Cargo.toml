@@ -1,0 +1,23 @@
+[workspace]
+resolver = "2"
+members = [
+    "maestros",
+    "probe-rs-extension",
+    "agent",
+]
+
+# Shared dependency versions for the Vyuta drone-IDE Rust workspace.
+# Individual crates opt into what they need via `workspace = true`.
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = "0.24"
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"

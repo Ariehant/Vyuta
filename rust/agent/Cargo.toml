@@ -1,0 +1,22 @@
+[package]
+name = "vyuta-agent"
+version = "0.1.0"
+edition = "2021"
+description = "Vyuta companion-computer agent daemon (Phase 0 scaffold)."
+license = "MIT"
+
+[[bin]]
+name = "vyuta-agent"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+
+# NOTE (Phase 6): the companion agent gains a tonic gRPC server for file sync,
+# colcon builds, and ROS 2 node lifecycle:
+#   tonic = "0.12"
+#   prost = "0.13"
+# Deferred from Phase 0 so the scaffold builds without protoc. See docs/phase-0.md.
