@@ -30,6 +30,22 @@ git clone --depth 1 --branch <new-tag> https://github.com/microsoft/vscode.git /
 
 Update the table above whenever the pinned tag changes.
 
+### Vyuta modifications layered on the baseline
+
+`main` is no longer byte-for-byte upstream; the following Vyuta changes are
+applied on top and must be preserved across re-syncs:
+
+- **`product.json`** — rebranded identity fields (`nameShort`/`nameLong` →
+  `Vyuta`, `applicationName` → `vyuta`, data folders, win32 AppId GUIDs
+  regenerated, URLs pointed at this repo). Icon art assets are not yet
+  replaced (still the upstream OSS icons) — that is a follow-up.
+- **`.github/workflows/`** — VS Code's upstream CI was removed (it requires
+  Microsoft build infrastructure / self-hosted runners and hardcodes
+  `microsoft/vscode`). Replaced with `vyuta-ci.yml`.
+- **`.claude/`** — SessionStart hook + settings for Claude Code on the web.
+
+When re-syncing, re-apply (or merge) these after refreshing the tree.
+
 ## Development branches
 
 - `main` — clean upstream VS Code baseline (this branch).
