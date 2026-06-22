@@ -1,0 +1,141 @@
+{
+  "name": "drone-firmware",
+  "displayName": "Vyuta Drone Firmware",
+  "description": "Build, flash, and debug PX4/ArduPilot firmware from the Vyuta drone IDE.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other",
+    "Debuggers"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vyuta.firmware.build",
+        "title": "Vyuta: Build Firmware…",
+        "category": "Vyuta"
+      },
+      {
+        "command": "vyuta.firmware.flash",
+        "title": "Vyuta: Flash Firmware…",
+        "category": "Vyuta"
+      },
+      {
+        "command": "vyuta.firmware.listProbes",
+        "title": "Vyuta: List Debug Probes",
+        "category": "Vyuta"
+      },
+      {
+        "command": "vyuta.firmware.openRttTerminal",
+        "title": "Vyuta: Open RTT / Semihosting Terminal",
+        "category": "Vyuta"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "px4",
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "PX4 make target, e.g. px4_sitl or px4_fmu-v6x_default."
+          },
+          "airframe": {
+            "type": "string",
+            "description": "Optional SITL airframe/world, e.g. gz_x500 (appended to the make target)."
+          },
+          "px4Dir": {
+            "type": "string",
+            "description": "PX4-Autopilot directory (defaults to the vyuta.firmware.px4Dir setting)."
+          }
+        }
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "vyuta-probe-rs",
+        "label": "Vyuta probe-rs",
+        "languages": [
+          "c",
+          "cpp",
+          "rust"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "chip"
+            ],
+            "properties": {
+              "chip": {
+                "type": "string",
+                "description": "Target chip name as known to probe-rs, e.g. STM32H743ZITx."
+              },
+              "program": {
+                "type": "string",
+                "description": "Path to the ELF to flash/debug.",
+                "default": "${workspaceFolder}/build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf"
+              },
+              "speed": {
+                "type": "number",
+                "description": "SWD/JTAG speed in kHz."
+              },
+              "connectUnderReset": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "vyuta-probe-rs",
+            "request": "launch",
+            "name": "Vyuta: Debug firmware (probe-rs)",
+            "chip": "STM32H743ZITx",
+            "program": "${workspaceFolder}/build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf"
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Firmware",
+      "properties": {
+        "vyuta.firmware.px4Dir": {
+          "type": "string",
+          "default": "${workspaceFolder}",
+          "description": "Path to the PX4-Autopilot source tree used for build/flash tasks."
+        },
+        "vyuta.firmware.probeRsPath": {
+          "type": "string",
+          "default": "probe-rs",
+          "description": "Path to the probe-rs executable (used for the DAP debug server, flashing, and RTT)."
+        },
+        "vyuta.firmware.dfuUtilPath": {
+          "type": "string",
+          "default": "dfu-util",
+          "description": "Path to the dfu-util executable."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.6.0"
+  }
+}

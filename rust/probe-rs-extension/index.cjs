@@ -20,8 +20,12 @@ try {
 module.exports = {
   /** @returns {string} build identifier */
   hello: addon.hello,
-  /** @returns {Array<object>} attached probes (synthetic in Phase 0) */
+  /** @returns {Array<object>} attached debug probes (empty if none) */
   listProbes() {
     return JSON.parse(addon.listProbes());
+  },
+  /** @returns {string[]} names of chip families known to probe-rs */
+  listChipFamilies() {
+    return JSON.parse(addon.listChipFamilies());
   },
 };

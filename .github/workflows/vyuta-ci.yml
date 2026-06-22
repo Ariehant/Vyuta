@@ -61,29 +61,31 @@ jobs:
         working-directory: rust
         run: cargo test --workspace
 
-  extension:
-    name: drone-telemetry extension
+  extensions:
+    name: Vyuta extensions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Detect extension
+      - name: Detect extensions
         id: detect
         run: |
-          if [ -d extensions/drone-telemetry ]; then
+          if ls extensions/drone-*/package.json >/dev/null 2>&1; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::extensions/drone-telemetry not present on this ref — skipping"
+            echo "::notice::no Vyuta extensions present on this ref — skipping"
           fi
       - if: steps.detect.outputs.present == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install
+      - name: Install & compile each extension
         if: steps.detect.outputs.present == 'true'
-        working-directory: extensions/drone-telemetry
-        run: npm install --no-audit --no-fund
-      - name: Compile (tsc)
-        if: steps.detect.outputs.present == 'true'
-        working-directory: extensions/drone-telemetry
-        run: npm run compile
+        run: |
+          set -e
+          for pkg in extensions/drone-*/package.json; do
+            dir="$(dirname "$pkg")"
+            echo "::group::$dir"
+            (cd "$dir" && npm install --no-audit --no-fund && npm run compile)
+            echo "::endgroup::"
+          done

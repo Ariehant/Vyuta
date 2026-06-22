@@ -25,10 +25,12 @@ if [ -d "$ROOT/rust" ]; then
   (cd "$ROOT/rust" && (cargo fetch --locked || cargo fetch))
 fi
 
-# drone-telemetry extension: install dev dependencies (typescript, @types/*).
-if [ -d "$ROOT/extensions/drone-telemetry" ]; then
-  echo "[vyuta] installing drone-telemetry extension dependencies…"
-  (cd "$ROOT/extensions/drone-telemetry" && npm install --no-audit --no-fund)
-fi
+# Vyuta extensions: install dev dependencies (typescript, @types/*) for each.
+for ext in "$ROOT"/extensions/drone-*/; do
+  if [ -f "$ext/package.json" ]; then
+    echo "[vyuta] installing $(basename "$ext") extension dependencies…"
+    (cd "$ext" && npm install --no-audit --no-fund)
+  fi
+done
 
 echo "[vyuta] session setup complete."

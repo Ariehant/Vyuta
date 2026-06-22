@@ -9,8 +9,9 @@ cockpit. See [`../FORK.md`](../FORK.md) for fork provenance.
   Rust transport split, and the decisions behind them.
 - [`plan.md`](./plan.md) — the full phased development plan (Phases 0–8) and
   current status.
-- [`phase-0.md`](./phase-0.md) — what the Phase 0 scaffold delivers and how to
-  build, run, and verify it.
+- [`phase-0.md`](./phase-0.md) — scaffold: monorepo, Rust workspace, extension.
+- [`phase-1.md`](./phase-1.md) — MAVLink telemetry engine + real-time cockpit.
+- [`phase-2.md`](./phase-2.md) — firmware build/flash/debug (probe-rs + DAP).
 
 ## Quick start (Phase 0)
 

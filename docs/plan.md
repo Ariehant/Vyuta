@@ -19,7 +19,7 @@ Transform the forked VS Code into a drone development cockpit:
 | ----- | ----------------------------------------------- | -------------- |
 | 0     | Project scaffold & architecture setup           | ✅ Complete     |
 | 1     | MAVLink telemetry engine & real-time dashboard  | ✅ Complete     |
-| 2     | Flight-controller firmware integration          | ⬜ Not started  |
+| 2     | Flight-controller firmware integration          | ✅ Complete     |
 | 3     | Simulation control panel (SITL + Gazebo)        | ⬜ Not started  |
 | 4     | Parameter tuning panel                          | ⬜ Not started  |
 | 5     | Flight-log analysis (ULog)                      | ⬜ Not started  |
@@ -46,7 +46,11 @@ alarms). Details and verification in [`phase-1.md`](./phase-1.md).
   battery gauge; armed/mode indicator; loss-of-signal / low-voltage alarms.
 - **Test:** `make px4_sitl jmavsim`, telemetry updates < 50 ms latency.
 
-## Phase 2 — Flight Controller Firmware Integration
+## Phase 2 — Flight Controller Firmware Integration ✅
+
+Build/flash/debug via a probe-rs Neon addon, a `vyuta-probe-rs` DAP debug
+adapter, and PX4 build tasks. Details and verification in
+[`phase-2.md`](./phase-2.md).
 
 - Wrap `probe-rs` as a Neon addon (GDB/DAP-compatible) in `probe-rs-extension`.
 - Register a DAP debug adapter; build-task provider for PX4 airframe/variant

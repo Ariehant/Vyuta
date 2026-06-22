@@ -2,7 +2,7 @@
 name = "probe-rs-extension"
 version = "0.1.0"
 edition = "2021"
-description = "Vyuta debug bridge: Neon (Node N-API) addon wrapping probe-rs (Phase 0 scaffold)."
+description = "Vyuta debug bridge: Neon (Node N-API) addon wrapping probe-rs."
 license = "MIT"
 
 [lib]
@@ -15,8 +15,8 @@ neon = "1"
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-# NOTE (Phase 2): the real debug bridge adds:
-#   probe-rs = "0.24"
-# which enumerates probes and drives DAP debug sessions. It is deferred from
-# the Phase 0 scaffold because it pulls in USB system libraries; the exported
-# `listProbes` function returns a synthetic list until then. See docs/phase-0.md.
+# Phase 2: enumerate debug probes and expose target metadata. probe-rs 0.31
+# uses pure-Rust USB (no libudev system dependency). The actual debug *session*
+# is driven by `probe-rs dap-server` from the VS Code DAP factory; this addon
+# provides synchronous probe/target queries to the UI.
+probe-rs = "0.31"
