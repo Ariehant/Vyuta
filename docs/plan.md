@@ -21,7 +21,7 @@ Transform the forked VS Code into a drone development cockpit:
 | 1     | MAVLink telemetry engine & real-time dashboard  | ✅ Complete     |
 | 2     | Flight-controller firmware integration          | ✅ Complete     |
 | 3     | Simulation control panel (SITL + Gazebo)        | ✅ Complete     |
-| 4     | Parameter tuning panel                          | ⬜ Not started  |
+| 4     | Parameter tuning panel                          | ✅ Complete     |
 | 5     | Flight-log analysis (ULog)                      | ⬜ Not started  |
 | 6     | Companion computer & ROS 2 integration          | ⬜ Not started  |
 | 7     | Safety, pre-flight checks & mission scripting   | ⬜ Not started  |
@@ -71,11 +71,19 @@ and an embedded Three.js 3D viewport. Details and verification in
   embedded Three.js viewport driven by pose (with a flight trail); mission REPL
   (`arm`/`takeoff`/`goto`/`orbit`/`rtl`/`land`); wind speed/direction/gust sliders.
 
-## Phase 4 — Parameter Tuning Panel
+## Phase 4 — Parameter Tuning Panel ✅
 
-- Extend `maestros` to cache `PARAM_VALUE`, support `PARAM_SET` and diffing.
-- React tree view grouped by subsystem; sliders/enums; "Live Tune" toggle;
-  save/diff parameter snapshots.
+`maestros` caches `PARAM_VALUE`, reads/writes parameters over the live MAVLink
+link, and serves a subsystem-grouped tuning panel with snapshots + diff. Details
+and verification in [`phase-4.md`](./phase-4.md).
+
+- **`maestros`:** parameter store + `PARAM_REQUEST_LIST`/`PARAM_SET`/
+  `PARAM_REQUEST_READ`; a bidirectional WebSocket protocol (telemetry stream is
+  unchanged); snapshots + diffing; a synthetic param set when no link is present.
+- **TS panel (`drone-tuning`):** subsystem-grouped tree with a filter; "Live
+  Tune" toggle (immediate vs staged + Apply/Revert); save/diff snapshots with
+  in-tree highlighting. (Vanilla DOM tree rather than React — no bundler in the
+  fork's extension build.)
 
 ## Phase 5 — Flight Log Analysis (ULog)
 

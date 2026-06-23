@@ -11,6 +11,7 @@
 │  │   drone-telemetry (TS)  │              │                │
 │  │   drone-firmware  (TS)  │      rust/probe-rs-extension  │
 │  │   drone-simulation(TS)  │      (debug bridge, Phase 2)  │
+│  │   drone-tuning    (TS)  │                               │
 │  └───────────┬─────────────┘                               │
 │              │ WebSocket (JSON)                             │
 │              ▼                                              │
@@ -29,6 +30,7 @@
 | `extensions/drone-telemetry`  | TypeScript | Telemetry cockpit webview                       |
 | `extensions/drone-firmware`   | TypeScript | Firmware build/flash/debug (Phase 2)            |
 | `extensions/drone-simulation` | TypeScript | Simulation control panel + 3D viewport (Ph. 3)  |
+| `extensions/drone-tuning`     | TypeScript | Parameter tuning tree + snapshots (Phase 4)     |
 | `rust/maestros`               | Rust       | MAVLink telemetry gateway sidecar               |
 | `rust/sim-manager`            | Rust       | PX4 SITL + Gazebo control sidecar (Phase 3)     |
 | `rust/probe-rs-extension`     | Rust/Neon  | In-process debug bridge (probe-rs, Phase 2)     |
@@ -55,6 +57,10 @@ Two transports are used deliberately, chosen per workload:
      ↓). The plan's gRPC surface is a drop-in upgrade once a `protoc` toolchain
      is available in CI; JSON keeps Phase 3 building offline, mirroring
      `maestros`.
+   - Phase 4 makes the `maestros` WebSocket *bidirectional* too: a client that
+     sends a parameter command (`request_params`/`set_param`/snapshot ops) gets
+     a tagged parameter stream alongside telemetry. Telemetry frames stay
+     untyped, so telemetry-only clients are unaffected.
 
 2. **Neon (N-API) addons loaded in-process** — for *low-latency, synchronous*
    call/response that must share the extension host's lifetime, primarily the

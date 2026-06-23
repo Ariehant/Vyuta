@@ -1,0 +1,50 @@
+{
+  "name": "drone-tuning",
+  "displayName": "Vyuta Drone Parameter Tuning",
+  "description": "Live PX4/ArduPilot parameter tuning (tree view, snapshots, diff) for the Vyuta drone IDE.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vyuta.tuning.openPanel",
+        "title": "Vyuta: Open Parameter Tuning Panel",
+        "category": "Vyuta"
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Parameter Tuning",
+      "properties": {
+        "vyuta.tuning.gatewayUrl": {
+          "type": "string",
+          "default": "ws://127.0.0.1:9876",
+          "description": "WebSocket URL of the maestros gateway (which owns the MAVLink link and parameter store)."
+        },
+        "vyuta.tuning.liveTune": {
+          "type": "boolean",
+          "default": false,
+          "description": "Default state of the Live Tune toggle: when on, edits are sent immediately; when off, edits are staged until Apply."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.6.0"
+  }
+}

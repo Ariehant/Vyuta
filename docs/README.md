@@ -14,6 +14,8 @@ cockpit. See [`../FORK.md`](../FORK.md) for fork provenance.
 - [`phase-2.md`](./phase-2.md) — firmware build/flash/debug (probe-rs + DAP).
 - [`phase-3.md`](./phase-3.md) — simulation control panel + 3D viewport
   (PX4 SITL + Gazebo via the `sim-manager` sidecar).
+- [`phase-4.md`](./phase-4.md) — parameter tuning panel (live `PARAM_SET`,
+  snapshots + diff) over the `maestros` gateway.
 
 ## Quick start (Phase 0)
 

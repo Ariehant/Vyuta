@@ -11,26 +11,60 @@ use std::time::{Duration, Instant};
 use mavlink::common::{MavMessage, MavModeFlag};
 use mavlink::error::MessageReadError;
 
+use crate::params::{decode_id, ParamStore, SharedConn};
 use crate::px4;
 use crate::telemetry::TelemetryState;
 
 /// Spawn the MAVLink reader thread.
-pub fn spawn(url: String, state: Arc<Mutex<TelemetryState>>) {
+///
+/// `conn_slot` is published once the link is up so the parameter service can
+/// send `PARAM_REQUEST_LIST`/`PARAM_SET` over the same connection.
+pub fn spawn(
+    url: String,
+    state: Arc<Mutex<TelemetryState>>,
+    params: Arc<Mutex<ParamStore>>,
+    conn_slot: SharedConn,
+) {
     std::thread::Builder::new()
         .name("mavlink-rx".into())
-        .spawn(move || run(url, state))
+        .spawn(move || run(url, state, params, conn_slot))
         .expect("failed to spawn mavlink thread");
 }
 
-fn run(url: String, state: Arc<Mutex<TelemetryState>>) {
+fn run(
+    url: String,
+    state: Arc<Mutex<TelemetryState>>,
+    params: Arc<Mutex<ParamStore>>,
+    conn_slot: SharedConn,
+) {
     loop {
         tracing::info!(%url, "connecting to MAVLink endpoint");
         match mavlink::connect::<MavMessage>(&url) {
             Ok(conn) => {
                 tracing::info!(%url, "MAVLink connected");
+                // Share the connection for the parameter write path.
+                let conn: Arc<dyn mavlink::MavConnection<MavMessage> + Send + Sync> =
+                    Arc::from(conn);
+                *conn_slot.lock().expect("conn slot poisoned") = Some(conn.clone());
                 loop {
                     match conn.recv() {
-                        Ok((_header, msg)) => {
+                        Ok((header, MavMessage::PARAM_VALUE(d))) => {
+                            params.lock().expect("param store poisoned").upsert(
+                                decode_id(&d.param_id),
+                                d.param_value,
+                                d.param_type as u8,
+                                d.param_index,
+                                d.param_count,
+                            );
+                            let _ = header;
+                        }
+                        Ok((header, msg)) => {
+                            if matches!(msg, MavMessage::HEARTBEAT(_)) {
+                                params
+                                    .lock()
+                                    .expect("param store poisoned")
+                                    .set_target(header.system_id, header.component_id);
+                            }
                             let mut s = state.lock().expect("telemetry state mutex poisoned");
                             apply(&mut s, msg);
                         }
@@ -43,6 +77,7 @@ fn run(url: String, state: Arc<Mutex<TelemetryState>>) {
                         Err(_) => continue,
                     }
                 }
+                *conn_slot.lock().expect("conn slot poisoned") = None;
             }
             Err(e) => {
                 tracing::warn!(%url, error = %e, "MAVLink connect failed; retrying in 2s");

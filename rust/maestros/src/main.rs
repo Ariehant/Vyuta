@@ -12,6 +12,7 @@
 //!   VYUTA_LINK_TIMEOUT_MS HEARTBEAT staleness for      (default 3000)
 //!                         link-loss
 
+mod params;
 mod px4;
 mod sources;
 mod telemetry;
@@ -23,6 +24,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 
+use params::{Link, ParamService, ParamStore, SharedConn};
 use telemetry::{Source, TelemetryState};
 
 #[tokio::main]
@@ -51,19 +53,24 @@ async fn main() -> Result<()> {
         Source::Synthetic
     };
     let state = Arc::new(Mutex::new(TelemetryState::new(source)));
+    let pstore = Arc::new(Mutex::new(ParamStore::new()));
 
-    match mav_url {
+    let params = match mav_url {
         Some(url) => {
             tracing::info!(%url, "telemetry source: MAVLink");
-            sources::mavlink_source::spawn(url, state.clone());
+            let conn_slot: SharedConn = Arc::new(Mutex::new(None));
+            sources::mavlink_source::spawn(url, state.clone(), pstore.clone(), conn_slot.clone());
+            ParamService::new(pstore.clone(), Link::Mavlink(conn_slot))
         }
         None => {
             tracing::info!("telemetry source: synthetic (set VYUTA_MAVLINK_URL for a real link)");
             sources::synthetic::spawn(state.clone());
+            params::seed_synthetic(&pstore);
+            ParamService::new(pstore.clone(), Link::Synthetic)
         }
-    }
+    };
 
-    ws::serve(addr, state, emit_hz, link_timeout).await
+    ws::serve(addr, state, params, emit_hz, link_timeout).await
 }
 
 fn env_or(key: &str, default: &str) -> String {
