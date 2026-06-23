@@ -12,7 +12,8 @@ use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::{Arc, Mutex};
 
 use mavlink::common::{
-    MavMessage, MavParamType, PARAM_REQUEST_LIST_DATA, PARAM_REQUEST_READ_DATA, PARAM_SET_DATA,
+    MavCmd, MavMessage, MavParamType, COMMAND_LONG_DATA, PARAM_REQUEST_LIST_DATA,
+    PARAM_REQUEST_READ_DATA, PARAM_SET_DATA,
 };
 use mavlink::{MavConnection, MavHeader};
 
@@ -265,6 +266,29 @@ impl ParamService {
                 param_id: encode_id(id),
             }));
         }
+    }
+
+    /// Send an arm/disarm command over the link. Returns true if a real link
+    /// carried it (false in synthetic mode, where the caller updates state).
+    pub fn arm(&self, arm: bool) -> bool {
+        let Link::Mavlink(_) = &self.link else {
+            return false;
+        };
+        let (sys, comp) = self.store.lock().expect("param store poisoned").target();
+        self.send(MavMessage::COMMAND_LONG(COMMAND_LONG_DATA {
+            param1: if arm { 1.0 } else { 0.0 },
+            param2: 0.0,
+            param3: 0.0,
+            param4: 0.0,
+            param5: 0.0,
+            param6: 0.0,
+            param7: 0.0,
+            command: MavCmd::MAV_CMD_COMPONENT_ARM_DISARM,
+            target_system: sys,
+            target_component: comp,
+            confirmation: 0,
+        }));
+        true
     }
 
     fn send(&self, msg: MavMessage) {

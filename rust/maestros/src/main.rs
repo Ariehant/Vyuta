@@ -13,6 +13,7 @@
 //!                         link-loss
 
 mod params;
+mod preflight;
 mod px4;
 mod sources;
 mod telemetry;

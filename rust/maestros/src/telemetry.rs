@@ -62,6 +62,12 @@ pub struct TelemetryState {
     pub mode: String,
     pub system_status: String,
 
+    /// Operator-driven arm state (Phase 7). When `Some`, it overrides the
+    /// synthetic generator's animated arming so the safety panel's Arm/Disarm
+    /// is meaningful without a real vehicle. A real MAVLink HEARTBEAT is
+    /// authoritative and clears it.
+    pub manual_arm: Option<bool>,
+
     pub last_heartbeat: Option<Instant>,
     pub last_update: Option<Instant>,
 }
@@ -89,8 +95,20 @@ impl TelemetryState {
             armed: false,
             mode: "—".to_string(),
             system_status: "—".to_string(),
+            manual_arm: None,
             last_heartbeat: None,
             last_update: None,
+        }
+    }
+
+    /// Whether the link is currently healthy (synthetic is always healthy).
+    pub fn link_ok(&self, link_timeout: Duration) -> bool {
+        match self.source {
+            Source::Synthetic => true,
+            Source::Mavlink => self
+                .last_heartbeat
+                .map(|t| Instant::now().duration_since(t) < link_timeout)
+                .unwrap_or(false),
         }
     }
 
@@ -133,7 +151,7 @@ impl TelemetryState {
             airspeed_mps: self.airspeed_mps,
             climb_mps: self.climb_mps,
             throttle_pct: self.throttle_pct,
-            armed: self.armed,
+            armed: self.manual_arm.unwrap_or(self.armed),
             mode: self.mode.clone(),
             system_status: self.system_status.clone(),
         }

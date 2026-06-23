@@ -25,6 +25,7 @@ use tokio::time::{interval, MissedTickBehavior};
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::params::{ParamService, ParamStore};
+use crate::preflight;
 use crate::telemetry::TelemetryState;
 
 const OUT_CAP: usize = 1024;
@@ -40,6 +41,9 @@ enum ClientCommand {
     DiffSnapshot { name: String },
     DeleteSnapshot { name: String },
     ListSnapshots,
+    Preflight,
+    Arm,
+    Disarm,
 }
 
 pub async fn serve(
@@ -121,7 +125,7 @@ async fn handle(
                     if param_task.is_none() {
                         param_task = Some(spawn_param_sync(params.store.clone(), out_tx.clone()));
                     }
-                    handle_command(cmd, &params, &out_tx).await;
+                    handle_command(cmd, &params, &state, link_timeout, &out_tx).await;
                 }
                 // Non-command text is ignored.
             }
@@ -144,6 +148,8 @@ async fn handle(
 async fn handle_command(
     cmd: ClientCommand,
     params: &Arc<ParamService>,
+    state: &Arc<Mutex<TelemetryState>>,
+    link_timeout: Duration,
     out_tx: &mpsc::Sender<String>,
 ) {
     match cmd {
@@ -218,7 +224,74 @@ async fn handle_command(
             send_snapshot_list(params, out_tx).await;
         }
         ClientCommand::ListSnapshots => send_snapshot_list(params, out_tx).await,
+        ClientCommand::Preflight => {
+            let _ = out_tx
+                .send(preflight_json(params, state, link_timeout))
+                .await;
+        }
+        ClientCommand::Arm => {
+            let _ = out_tx.send(do_arm(params, state, link_timeout)).await;
+        }
+        ClientCommand::Disarm => {
+            let sent = params.arm(false);
+            if !sent {
+                let mut s = state.lock().expect("telemetry state mutex poisoned");
+                s.manual_arm = Some(false);
+                s.armed = false;
+            }
+            let _ = out_tx
+                .send(
+                    json!({"type":"arm_ack","ok":true,"armed":false,"message":"disarmed"})
+                        .to_string(),
+                )
+                .await;
+        }
     }
+}
+
+/// Evaluate the pre-flight checklist into a JSON frame.
+fn preflight_json(
+    params: &Arc<ParamService>,
+    state: &Arc<Mutex<TelemetryState>>,
+    link_timeout: Duration,
+) -> String {
+    let s = state.lock().expect("telemetry state mutex poisoned");
+    let store = params.store.lock().expect("param store poisoned");
+    let (ok, items) = preflight::evaluate(&s, &store, s.link_ok(link_timeout));
+    let items: Vec<_> = items
+        .into_iter()
+        .map(|i| json!({"id": i.id, "label": i.label, "pass": i.pass, "detail": i.detail}))
+        .collect();
+    json!({"type": "preflight", "ok": ok, "items": items}).to_string()
+}
+
+/// Run pre-flight and, if it passes, arm the vehicle.
+fn do_arm(
+    params: &Arc<ParamService>,
+    state: &Arc<Mutex<TelemetryState>>,
+    link_timeout: Duration,
+) -> String {
+    let (ok, fail_reason) = {
+        let s = state.lock().expect("telemetry state mutex poisoned");
+        let store = params.store.lock().expect("param store poisoned");
+        let (ok, items) = preflight::evaluate(&s, &store, s.link_ok(link_timeout));
+        let reason = items
+            .iter()
+            .find(|i| !i.pass)
+            .map(|i| format!("{}: {}", i.label, i.detail))
+            .unwrap_or_default();
+        (ok, reason)
+    };
+    if !ok {
+        return json!({"type":"arm_ack","ok":false,"armed":false,"message":format!("pre-flight failed — {fail_reason}")}).to_string();
+    }
+    let sent = params.arm(true);
+    if !sent {
+        let mut s = state.lock().expect("telemetry state mutex poisoned");
+        s.manual_arm = Some(true);
+        s.armed = true;
+    }
+    json!({"type":"arm_ack","ok":true,"armed":true,"message":"armed"}).to_string()
 }
 
 async fn send_snapshot_list(params: &Arc<ParamService>, out_tx: &mpsc::Sender<String>) {

@@ -24,7 +24,7 @@ Transform the forked VS Code into a drone development cockpit:
 | 4     | Parameter tuning panel                          | ✅ Complete     |
 | 5     | Flight-log analysis (ULog)                      | ✅ Complete     |
 | 6     | Companion computer & ROS 2 integration          | ✅ Complete     |
-| 7     | Safety, pre-flight checks & mission scripting   | ⬜ Not started  |
+| 7     | Safety, pre-flight checks & mission scripting   | ✅ Complete     |
 | 8     | Polish & simulator-agnostic extensions          | ⬜ Not started  |
 
 ---
@@ -114,12 +114,19 @@ Details and verification in [`phase-6.md`](./phase-6.md).
   terminal. (Surfacing ROS topics in the telemetry panel + node lifecycle are
   follow-ups.)
 
-## Phase 7 — Safety, Pre-flight Checks & Mission Scripting
+## Phase 7 — Safety, Pre-flight Checks & Mission Scripting ✅
 
-- `PreFlightCheck` gRPC over safety params; pre-flight panel gating the "Arm"
-  button; visual/audible alarms.
-- Notebook API `.mission` files running MAVSDK-Python cells, wired to the 3D
-  viewport in real time.
+maestros runs a pre-flight checklist and gates arming; a `.mission` notebook
+flies the simulation. Details and verification in [`phase-7.md`](./phase-7.md).
+
+- **Pre-flight + arming (`maestros` + `drone-safety`):** checklist over
+  telemetry + params (link, battery, GPS, attitude, params, disarmed); a panel
+  whose Arm button is gated on it (arm re-checks server-side); visual + audible
+  alarms. (Checks live in maestros; gRPC `PreFlightCheck` is the upgrade path.)
+- **Mission scripting (`drone-mission`):** `.mission` notebooks (markdown + a
+  small mission DSL) whose cells fly the `sim-manager` in real time — the
+  viewport shows them. (Notebook DSL rather than embedded MAVSDK-Python; dry-run
+  fallback when no WebSocket is available.)
 
 ## Phase 8 — Polish & Simulator-Agnostic Extensions
 

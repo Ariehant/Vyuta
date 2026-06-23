@@ -1,0 +1,62 @@
+{
+  "name": "drone-mission",
+  "displayName": "Vyuta Drone Mission Notebooks",
+  "description": "Author and run .mission notebooks that fly the Vyuta simulation in real time.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Notebooks",
+    "Other"
+  ],
+  "activationEvents": [
+    "onNotebook:vyuta-mission"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "notebooks": [
+      {
+        "type": "vyuta-mission",
+        "displayName": "Vyuta Mission",
+        "selector": [
+          { "filenamePattern": "*.mission" }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "vyuta.mission.new",
+        "title": "Vyuta: New Mission Notebook",
+        "category": "Vyuta"
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Mission Notebooks",
+      "properties": {
+        "vyuta.mission.simUrl": {
+          "type": "string",
+          "default": "ws://127.0.0.1:9877",
+          "description": "WebSocket URL of the sim-manager sidecar the mission cells fly."
+        },
+        "vyuta.mission.stepPauseMs": {
+          "type": "number",
+          "default": 600,
+          "description": "Pause after each command (ms) to let the simulation react before the next step."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.6.0"
+  }
+}

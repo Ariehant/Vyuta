@@ -14,6 +14,8 @@
 │  │   drone-tuning    (TS)  │                               │
 │  │   drone-logbook   (TS)  │                               │
 │  │   drone-companion (TS)  │                               │
+│  │   drone-safety    (TS)  │                               │
+│  │   drone-mission   (TS)  │                               │
 │  └───────────┬─────────────┘                               │
 │              │ WebSocket (JSON)                             │
 │              ▼                                              │
@@ -36,6 +38,8 @@
 | `extensions/drone-tuning`     | TypeScript | Parameter tuning tree + snapshots (Phase 4)     |
 | `extensions/drone-logbook`    | TypeScript | ULog flight-log browser + auto-review (Phase 5)  |
 | `extensions/drone-companion`  | TypeScript | ROS 2 graph browser, build/deploy/SSH (Phase 6)  |
+| `extensions/drone-safety`     | TypeScript | Pre-flight checklist + gated arming (Phase 7)    |
+| `extensions/drone-mission`    | TypeScript | `.mission` notebooks flying the sim (Phase 7)    |
 | `rust/maestros`               | Rust       | MAVLink telemetry gateway sidecar               |
 | `rust/sim-manager`            | Rust       | PX4 SITL + Gazebo control sidecar (Phase 3)     |
 | `rust/logbook`                | Rust       | ULog parser + log-analysis sidecar (Phase 5)    |

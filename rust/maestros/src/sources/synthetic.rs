@@ -37,7 +37,12 @@ pub fn spawn(state: Arc<Mutex<TelemetryState>>) {
             s.airspeed_mps = Some(5.5 + 2.0 * (t * 0.3).sin().abs());
             s.climb_mps = Some(2.0 * 0.4 * (t * 0.4).cos());
             s.throttle_pct = Some(55.0 + 10.0 * (t * 0.6).sin());
-            s.armed = (t as u64 / 5).is_multiple_of(2);
+            // Respect an operator arm/disarm override (Phase 7 safety panel);
+            // otherwise animate arming for a lively demo.
+            if s.manual_arm.is_none() {
+                // Start disarmed so the safety panel's pre-flight passes at t=0.
+                s.armed = !(t as u64 / 5).is_multiple_of(2);
+            }
             s.mode = px4::mode_string(px4::custom_mode(3, 0)); // POSCTL
             s.system_status = "MAV_STATE_ACTIVE".to_string();
             s.last_heartbeat = Some(now);

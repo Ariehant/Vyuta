@@ -1,0 +1,16 @@
+# %% [markdown]
+# Box survey
+A simple survey: take off, fly a 20 m box, return and land.
+Start the sim first: `cargo run --bin sim-manager`, then run the cell below.
+
+# %%
+arm
+takeoff 6
+goto 20 0 6
+wait 2
+goto 20 20 6
+wait 2
+goto 0 20 6
+wait 2
+rtl
+land

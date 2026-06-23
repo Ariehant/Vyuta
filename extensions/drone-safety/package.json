@@ -1,0 +1,50 @@
+{
+  "name": "drone-safety",
+  "displayName": "Vyuta Drone Pre-Flight & Safety",
+  "description": "Pre-flight safety checklist that gates arming, with alarms, for the Vyuta drone IDE.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vyuta.safety.openPanel",
+        "title": "Vyuta: Open Pre-Flight & Safety Panel",
+        "category": "Vyuta"
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Pre-Flight & Safety",
+      "properties": {
+        "vyuta.safety.gatewayUrl": {
+          "type": "string",
+          "default": "ws://127.0.0.1:9876",
+          "description": "WebSocket URL of the maestros gateway (telemetry + pre-flight + arming)."
+        },
+        "vyuta.safety.audibleAlarms": {
+          "type": "boolean",
+          "default": true,
+          "description": "Play a tone on arm and when a pre-flight check fails while armed."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.6.0"
+  }
+}
