@@ -2243,7 +2243,11 @@ name = "vyuta-agent"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "futures-util",
+ "serde",
+ "serde_json",
  "tokio",
+ "tokio-tungstenite",
  "tracing",
  "tracing-subscriber",
 ]

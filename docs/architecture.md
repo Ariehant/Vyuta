@@ -13,6 +13,7 @@
 │  │   drone-simulation(TS)  │      (debug bridge, Phase 2)  │
 │  │   drone-tuning    (TS)  │                               │
 │  │   drone-logbook   (TS)  │                               │
+│  │   drone-companion (TS)  │                               │
 │  └───────────┬─────────────┘                               │
 │              │ WebSocket (JSON)                             │
 │              ▼                                              │
@@ -20,7 +21,7 @@
 │  │ rust/maestros (sidecar) │  MAVLink telemetry + params    │
 │  │ rust/sim-manager        │  PX4 SITL + Gazebo control     │
 │  │ rust/logbook            │  ULog flight-log analysis      │
-│  │ rust/agent  (companion) │  ROS 2 / deploy (drone-side)   │
+│  │ rust/agent  (companion) │  ROS 2 introspect/build/deploy │
 │  └────────────────────────┘                                │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -34,6 +35,7 @@
 | `extensions/drone-simulation` | TypeScript | Simulation control panel + 3D viewport (Ph. 3)  |
 | `extensions/drone-tuning`     | TypeScript | Parameter tuning tree + snapshots (Phase 4)     |
 | `extensions/drone-logbook`    | TypeScript | ULog flight-log browser + auto-review (Phase 5)  |
+| `extensions/drone-companion`  | TypeScript | ROS 2 graph browser, build/deploy/SSH (Phase 6)  |
 | `rust/maestros`               | Rust       | MAVLink telemetry gateway sidecar               |
 | `rust/sim-manager`            | Rust       | PX4 SITL + Gazebo control sidecar (Phase 3)     |
 | `rust/logbook`                | Rust       | ULog parser + log-analysis sidecar (Phase 5)    |

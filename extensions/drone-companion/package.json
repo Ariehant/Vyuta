@@ -1,0 +1,65 @@
+{
+  "name": "drone-companion",
+  "displayName": "Vyuta Drone Companion (ROS 2)",
+  "description": "ROS 2 node/topic browser, colcon build, deploy, and SSH for the drone's companion computer.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vyuta.companion.openPanel",
+        "title": "Vyuta: Open Companion (ROS 2) Panel",
+        "category": "Vyuta"
+      },
+      {
+        "command": "vyuta.companion.openSshTerminal",
+        "title": "Vyuta: Open Drone SSH Terminal",
+        "category": "Vyuta"
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Companion",
+      "properties": {
+        "vyuta.companion.agentUrl": {
+          "type": "string",
+          "default": "ws://127.0.0.1:9879",
+          "description": "WebSocket URL of the vyuta-agent companion daemon."
+        },
+        "vyuta.companion.sshHost": {
+          "type": "string",
+          "default": "",
+          "description": "SSH destination for the drone companion computer, e.g. pi@drone.local."
+        },
+        "vyuta.companion.workspace": {
+          "type": "string",
+          "default": "",
+          "description": "colcon workspace directory to build/deploy (defaults to the agent's configured workspace)."
+        },
+        "vyuta.companion.deployTarget": {
+          "type": "string",
+          "default": "",
+          "description": "rsync deploy target, e.g. pi@drone.local:/home/pi/ws (defaults to the agent's)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.6.0"
+  }
+}

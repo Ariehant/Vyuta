@@ -23,7 +23,7 @@ Transform the forked VS Code into a drone development cockpit:
 | 3     | Simulation control panel (SITL + Gazebo)        | ✅ Complete     |
 | 4     | Parameter tuning panel                          | ✅ Complete     |
 | 5     | Flight-log analysis (ULog)                      | ✅ Complete     |
-| 6     | Companion computer & ROS 2 integration          | ⬜ Not started  |
+| 6     | Companion computer & ROS 2 integration          | ✅ Complete     |
 | 7     | Safety, pre-flight checks & mission scripting   | ⬜ Not started  |
 | 8     | Polish & simulator-agnostic extensions          | ⬜ Not started  |
 
@@ -99,12 +99,20 @@ auto-review to a browser panel. Details and verification in
   uPlot charts (mode bands, synced cursors), auto-review checklist, logged
   messages. (Vendored uPlot; single-log view — two-log compare deferred.)
 
-## Phase 6 — Companion Computer & ROS 2 Integration
+## Phase 6 — Companion Computer & ROS 2 Integration ✅
 
-- **`agent` (drone-side):** tonic gRPC for file sync, `colcon build`, node
-  lifecycle, MAVLink-ROS bridge status; ROS node introspection.
-- TS panel: node/topic/service tree (mini rqt); one-click "Deploy to Drone";
-  SSH terminal; surface ROS 2 topics in the telemetry panel.
+`agent` companion daemon does ROS 2 introspection, `colcon build`, and rsync
+deploy; the `drone-companion` panel is a mini-rqt browser with build/deploy/SSH.
+Details and verification in [`phase-6.md`](./phase-6.md).
+
+- **`agent` (drone-side):** ROS 2 graph introspection, topic echo, `colcon
+  build`, rsync deploy, MAVLink-ROS bridge status — JSON over WebSocket (tonic
+  gRPC is the documented upgrade); synthetic graph + simulated build/deploy when
+  the tools/ROS are absent.
+- **TS panel (`drone-companion`):** node/topic/service tree (mini-rqt) with
+  click-to-echo; one-click Build / "Deploy to Drone" with a log console; SSH
+  terminal. (Surfacing ROS topics in the telemetry panel + node lifecycle are
+  follow-ups.)
 
 ## Phase 7 — Safety, Pre-flight Checks & Mission Scripting
 

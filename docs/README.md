@@ -18,6 +18,8 @@ cockpit. See [`../FORK.md`](../FORK.md) for fork provenance.
   snapshots + diff) over the `maestros` gateway.
 - [`phase-5.md`](./phase-5.md) — flight-log analysis: a ULog parser + the
   `logbook` sidecar, with a mode-annotated browser and auto-review.
+- [`phase-6.md`](./phase-6.md) — companion computer & ROS 2: the `agent` daemon
+  (introspection, colcon build, deploy) and a mini-rqt panel.
 
 ## Quick start (Phase 0)
 
