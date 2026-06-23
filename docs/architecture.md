@@ -9,12 +9,14 @@
 │  ┌────────────────────────┐      in-process (Neon/N-API)  │
 │  │ extensions/             │◀─────────────┐                │
 │  │   drone-telemetry (TS)  │              │                │
-│  │   ... future panels     │      rust/probe-rs-extension  │
-│  └───────────┬─────────────┘      (debug bridge, Phase 2)  │
-│              │ WebSocket / gRPC                             │
+│  │   drone-firmware  (TS)  │      rust/probe-rs-extension  │
+│  │   drone-simulation(TS)  │      (debug bridge, Phase 2)  │
+│  └───────────┬─────────────┘                               │
+│              │ WebSocket (JSON)                             │
 │              ▼                                              │
 │  ┌────────────────────────┐                                │
 │  │ rust/maestros (sidecar) │  MAVLink telemetry gateway     │
+│  │ rust/sim-manager        │  PX4 SITL + Gazebo control     │
 │  │ rust/agent  (companion) │  ROS 2 / deploy (drone-side)   │
 │  └────────────────────────┘                                │
 └──────────────────────────────────────────────────────────┘
@@ -22,13 +24,16 @@
 
 ## Monorepo layout
 
-| Path                         | Language   | Role                                            |
-| ---------------------------- | ---------- | ----------------------------------------------- |
-| `extensions/drone-telemetry` | TypeScript | Telemetry cockpit webview (and future panels)   |
-| `rust/maestros`              | Rust       | MAVLink telemetry gateway sidecar               |
-| `rust/probe-rs-extension`    | Rust/Neon  | In-process debug bridge (probe-rs, Phase 2)     |
-| `rust/agent`                 | Rust       | Companion-computer daemon (ROS 2/deploy, Ph. 6) |
-| `docs/`                      | —          | Plan, architecture, per-phase notes             |
+| Path                          | Language   | Role                                            |
+| ----------------------------- | ---------- | ----------------------------------------------- |
+| `extensions/drone-telemetry`  | TypeScript | Telemetry cockpit webview                       |
+| `extensions/drone-firmware`   | TypeScript | Firmware build/flash/debug (Phase 2)            |
+| `extensions/drone-simulation` | TypeScript | Simulation control panel + 3D viewport (Ph. 3)  |
+| `rust/maestros`               | Rust       | MAVLink telemetry gateway sidecar               |
+| `rust/sim-manager`            | Rust       | PX4 SITL + Gazebo control sidecar (Phase 3)     |
+| `rust/probe-rs-extension`     | Rust/Neon  | In-process debug bridge (probe-rs, Phase 2)     |
+| `rust/agent`                  | Rust       | Companion-computer daemon (ROS 2/deploy, Ph. 6) |
+| `docs/`                       | —          | Plan, architecture, per-phase notes             |
 
 The `rust/` directory is a single Cargo workspace so all native crates share a
 lockfile, target dir, and dependency versions (`rust/Cargo.toml`).
@@ -45,6 +50,11 @@ Two transports are used deliberately, chosen per workload:
    - Phase 0 uses a **JSON** WebSocket on `ws://127.0.0.1:9876`.
    - Phase 1 keeps the WebSocket but switches the payload to **FlatBuffers**
      for zero-copy, high-rate (30+ Hz, eventually >1 kHz) telemetry.
+   - Phase 3's `sim-manager` (`ws://127.0.0.1:9877`) carries a *bidirectional*
+     JSON control + streaming protocol (start/stop/wind/REPL ↑, status/pose/log
+     ↓). The plan's gRPC surface is a drop-in upgrade once a `protoc` toolchain
+     is available in CI; JSON keeps Phase 3 building offline, mirroring
+     `maestros`.
 
 2. **Neon (N-API) addons loaded in-process** — for *low-latency, synchronous*
    call/response that must share the extension host's lifetime, primarily the
@@ -55,9 +65,9 @@ Rule of thumb: **stream → sidecar; tight synchronous call → Neon.**
 
 ## Build pipeline
 
-- **Sidecars** (`maestros`, `agent`): `cargo build [--release]` produces native
-  binaries under `rust/target/`. They are launched by the extension as child
-  processes (or run manually during development).
+- **Sidecars** (`maestros`, `sim-manager`, `agent`): `cargo build [--release]`
+  produces native binaries under `rust/target/`. They are launched by the
+  extension as child processes (or run manually during development).
 - **Neon addon** (`probe-rs-extension`): `npm run build` in that folder runs
   `cargo build --release` and copies the resulting cdylib to `index.node`,
   which the extension `require()`s through `index.cjs`.

@@ -4,6 +4,7 @@ members = [
     "maestros",
     "probe-rs-extension",
     "agent",
+    "sim-manager",
 ]
 
 # Shared dependency versions for the Vyuta drone-IDE Rust workspace.

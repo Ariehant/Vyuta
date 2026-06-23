@@ -5,8 +5,8 @@ set -euo pipefail
 #
 # Prepares the drone-IDE monorepo so linters and tests work in Claude Code on
 # the web. It only sets up the Vyuta-specific projects (the Rust workspace and
-# the drone-telemetry extension) — NOT VS Code's own ~full build, which is
-# heavy and not needed for robotics development.
+# the drone-* extensions) — NOT VS Code's own ~full build, which is heavy and
+# not needed for robotics development.
 #
 # Idempotent and non-interactive; safe to run repeatedly.
 

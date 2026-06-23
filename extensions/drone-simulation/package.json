@@ -1,0 +1,67 @@
+{
+  "name": "drone-simulation",
+  "displayName": "Vyuta Drone Simulation",
+  "description": "Start/stop/monitor PX4-SITL + Gazebo simulations with a live 3D viewport, from the Vyuta drone IDE.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vyuta.simulation.openPanel",
+        "title": "Vyuta: Open Simulation Control Panel",
+        "category": "Vyuta"
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Simulation",
+      "properties": {
+        "vyuta.simulation.managerUrl": {
+          "type": "string",
+          "default": "ws://127.0.0.1:9877",
+          "description": "WebSocket URL of the sim-manager sidecar."
+        },
+        "vyuta.simulation.defaultWorld": {
+          "type": "string",
+          "default": "default",
+          "description": "World id pre-selected in the panel (e.g. default, baylands, windy, lawn)."
+        },
+        "vyuta.simulation.defaultVehicle": {
+          "type": "string",
+          "default": "x500",
+          "description": "Vehicle id pre-selected in the panel (e.g. x500, standard_vtol, rc_cessna, r1_rover)."
+        },
+        "vyuta.simulation.headless": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start real simulations headless (no Gazebo GUI). Ignored by the built-in mock."
+        },
+        "vyuta.simulation.forceMock": {
+          "type": "boolean",
+          "default": false,
+          "description": "Always request the sidecar's built-in mock flight, even when a real PX4 + Gazebo toolchain is available (useful for UI work)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vendor": "mkdir -p media/vendor/three && cp node_modules/three/build/three.module.min.js node_modules/three/build/three.core.min.js media/vendor/three/"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "three": "^0.184.0",
+    "typescript": "^5.6.0"
+  }
+}

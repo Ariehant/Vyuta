@@ -1754,6 +1754,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sim-manager"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-tungstenite",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "simd-adler32"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"

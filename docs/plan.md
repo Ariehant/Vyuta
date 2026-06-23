@@ -20,7 +20,7 @@ Transform the forked VS Code into a drone development cockpit:
 | 0     | Project scaffold & architecture setup           | ✅ Complete     |
 | 1     | MAVLink telemetry engine & real-time dashboard  | ✅ Complete     |
 | 2     | Flight-controller firmware integration          | ✅ Complete     |
-| 3     | Simulation control panel (SITL + Gazebo)        | ⬜ Not started  |
+| 3     | Simulation control panel (SITL + Gazebo)        | ✅ Complete     |
 | 4     | Parameter tuning panel                          | ⬜ Not started  |
 | 5     | Flight-log analysis (ULog)                      | ⬜ Not started  |
 | 6     | Companion computer & ROS 2 integration          | ⬜ Not started  |
@@ -57,12 +57,19 @@ adapter, and PX4 build tasks. Details and verification in
   presets; "Flash Firmware" via `dfu-util`/`probe-rs run`; xterm.js semihosting.
 - **Test:** build PX4 for Pixhawk 4, flash, breakpoint in `px4_simple_app.c`.
 
-## Phase 3 — Simulation Control Panel (SITL + Gazebo)
+## Phase 3 — Simulation Control Panel (SITL + Gazebo) ✅
+
+`sim-manager` sidecar driving PX4 SITL + Gazebo, with a start/stop/monitor panel
+and an embedded Three.js 3D viewport. Details and verification in
+[`phase-3.md`](./phase-3.md).
 
 - **`sim-manager` sidecar:** manage PX4 SITL + `gz sim` via `tokio::process`;
-  gRPC `StartSim/StopSim/InjectWind/GetStatus`.
-- **TS panel:** start/stop, world selector, status; embedded Three.js viewport
-  driven by pose/TF; mission REPL of MAVLink commands; wind-tunnel slider.
+  start/stop/inject-wind/status as JSON over WebSocket (gRPC is the documented
+  upgrade once protoc is available — see phase-3 notes). Built-in mock flight +
+  mission autopilot so the panel works with no toolchain installed.
+- **TS panel:** start/stop/reset, world + vehicle pickers, status + log console;
+  embedded Three.js viewport driven by pose (with a flight trail); mission REPL
+  (`arm`/`takeoff`/`goto`/`orbit`/`rtl`/`land`); wind speed/direction/gust sliders.
 
 ## Phase 4 — Parameter Tuning Panel
 

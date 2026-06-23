@@ -12,6 +12,8 @@ cockpit. See [`../FORK.md`](../FORK.md) for fork provenance.
 - [`phase-0.md`](./phase-0.md) — scaffold: monorepo, Rust workspace, extension.
 - [`phase-1.md`](./phase-1.md) — MAVLink telemetry engine + real-time cockpit.
 - [`phase-2.md`](./phase-2.md) — firmware build/flash/debug (probe-rs + DAP).
+- [`phase-3.md`](./phase-3.md) — simulation control panel + 3D viewport
+  (PX4 SITL + Gazebo via the `sim-manager` sidecar).
 
 ## Quick start (Phase 0)
 
