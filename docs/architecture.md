@@ -12,12 +12,14 @@
 │  │   drone-firmware  (TS)  │      rust/probe-rs-extension  │
 │  │   drone-simulation(TS)  │      (debug bridge, Phase 2)  │
 │  │   drone-tuning    (TS)  │                               │
+│  │   drone-logbook   (TS)  │                               │
 │  └───────────┬─────────────┘                               │
 │              │ WebSocket (JSON)                             │
 │              ▼                                              │
 │  ┌────────────────────────┐                                │
-│  │ rust/maestros (sidecar) │  MAVLink telemetry gateway     │
+│  │ rust/maestros (sidecar) │  MAVLink telemetry + params    │
 │  │ rust/sim-manager        │  PX4 SITL + Gazebo control     │
+│  │ rust/logbook            │  ULog flight-log analysis      │
 │  │ rust/agent  (companion) │  ROS 2 / deploy (drone-side)   │
 │  └────────────────────────┘                                │
 └──────────────────────────────────────────────────────────┘
@@ -31,8 +33,10 @@
 | `extensions/drone-firmware`   | TypeScript | Firmware build/flash/debug (Phase 2)            |
 | `extensions/drone-simulation` | TypeScript | Simulation control panel + 3D viewport (Ph. 3)  |
 | `extensions/drone-tuning`     | TypeScript | Parameter tuning tree + snapshots (Phase 4)     |
+| `extensions/drone-logbook`    | TypeScript | ULog flight-log browser + auto-review (Phase 5)  |
 | `rust/maestros`               | Rust       | MAVLink telemetry gateway sidecar               |
 | `rust/sim-manager`            | Rust       | PX4 SITL + Gazebo control sidecar (Phase 3)     |
+| `rust/logbook`                | Rust       | ULog parser + log-analysis sidecar (Phase 5)    |
 | `rust/probe-rs-extension`     | Rust/Neon  | In-process debug bridge (probe-rs, Phase 2)     |
 | `rust/agent`                  | Rust       | Companion-computer daemon (ROS 2/deploy, Ph. 6) |
 | `docs/`                       | —          | Plan, architecture, per-phase notes             |

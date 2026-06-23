@@ -1,0 +1,27 @@
+[package]
+name = "logbook"
+version = "0.1.0"
+edition = "2021"
+description = "Vyuta flight-log analysis sidecar — parses PX4 ULog and serves series/review (Phase 5)."
+license = "MIT"
+
+[[bin]]
+name = "logbook"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+
+# NOTE (Phase 8 upgrade): the plan targets Apache Arrow + Arrow Flight/HTTP for
+# the decoded log. Arrow + a protoc/Flight stack are heavy and not needed for
+# Phase 5; the ULog parser is hand-rolled (no `nom`) and decoded series are
+# served as downsampled JSON over the same WebSocket the other sidecars use.
+# Arrow columns + Flight are the drop-in upgrade for very large logs:
+#   arrow = "53"

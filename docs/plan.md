@@ -22,7 +22,7 @@ Transform the forked VS Code into a drone development cockpit:
 | 2     | Flight-controller firmware integration          | ✅ Complete     |
 | 3     | Simulation control panel (SITL + Gazebo)        | ✅ Complete     |
 | 4     | Parameter tuning panel                          | ✅ Complete     |
-| 5     | Flight-log analysis (ULog)                      | ⬜ Not started  |
+| 5     | Flight-log analysis (ULog)                      | ✅ Complete     |
 | 6     | Companion computer & ROS 2 integration          | ⬜ Not started  |
 | 7     | Safety, pre-flight checks & mission scripting   | ⬜ Not started  |
 | 8     | Polish & simulator-agnostic extensions          | ⬜ Not started  |
@@ -85,12 +85,19 @@ and verification in [`phase-4.md`](./phase-4.md).
   in-tree highlighting. (Vanilla DOM tree rather than React — no bundler in the
   fork's extension build.)
 
-## Phase 5 — Flight Log Analysis (ULog)
+## Phase 5 — Flight Log Analysis (ULog) ✅
 
-- Rust ULog parser (`nom`/`ulog`) → Apache Arrow; serve via Arrow Flight gRPC or
-  paginated HTTP; auto-review engine (vibration, innovations, failsafes).
-- TS log browser: timeline with mode annotations, side-by-side comparison,
-  auto-review checklist with severities (reuse uPlot).
+`logbook` sidecar parses PX4 ULog into time series and serves them + an
+auto-review to a browser panel. Details and verification in
+[`phase-5.md`](./phase-5.md).
+
+- **`logbook` sidecar:** hand-rolled ULog parser → named series; min/max
+  downsampling; auto-review (vibration, failsafe, battery, altitude, modes);
+  request/response JSON over WebSocket (Arrow/Flight is the documented upgrade);
+  a synthetic flight log when no `.ulg` is given.
+- **TS browser (`drone-logbook`):** flight-mode timeline, field picker + stacked
+  uPlot charts (mode bands, synced cursors), auto-review checklist, logged
+  messages. (Vendored uPlot; single-log view — two-log compare deferred.)
 
 ## Phase 6 — Companion Computer & ROS 2 Integration
 

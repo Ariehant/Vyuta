@@ -16,6 +16,8 @@ cockpit. See [`../FORK.md`](../FORK.md) for fork provenance.
   (PX4 SITL + Gazebo via the `sim-manager` sidecar).
 - [`phase-4.md`](./phase-4.md) — parameter tuning panel (live `PARAM_SET`,
   snapshots + diff) over the `maestros` gateway.
+- [`phase-5.md`](./phase-5.md) — flight-log analysis: a ULog parser + the
+  `logbook` sidecar, with a mode-annotated browser and auto-review.
 
 ## Quick start (Phase 0)
 

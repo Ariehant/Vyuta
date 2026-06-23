@@ -1,0 +1,47 @@
+{
+  "name": "drone-logbook",
+  "displayName": "Vyuta Drone Flight Log Analyzer",
+  "description": "Browse PX4 ULog flight logs with a mode-annotated timeline, plots, and an auto-review checklist.",
+  "version": "0.1.0",
+  "publisher": "vyuta",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vyuta.logbook.openPanel",
+        "title": "Vyuta: Open Flight Log Analyzer",
+        "category": "Vyuta"
+      }
+    ],
+    "configuration": {
+      "title": "Vyuta Drone Flight Log Analyzer",
+      "properties": {
+        "vyuta.logbook.serverUrl": {
+          "type": "string",
+          "default": "ws://127.0.0.1:9878",
+          "description": "WebSocket URL of the logbook sidecar."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vendor": "mkdir -p media/vendor/uplot && cp node_modules/uplot/dist/uPlot.iife.min.js node_modules/uplot/dist/uPlot.min.css media/vendor/uplot/"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.6.0",
+    "uplot": "^1.6.32"
+  }
+}
