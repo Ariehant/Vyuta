@@ -48,6 +48,7 @@ pub struct SimState {
     pub toolchain_ok: bool,
     pub world: String,
     pub vehicle: String,
+    pub simulator: String,
     pub wind: WindFrame,
     pub pid: Option<u32>,
     pub message: String,
@@ -65,6 +66,7 @@ impl SimState {
             toolchain_ok,
             world,
             vehicle,
+            simulator: worlds::DEFAULT_SIMULATOR.to_string(),
             wind: WindFrame {
                 speed_mps: 0.0,
                 direction_deg: 0.0,
@@ -107,6 +109,7 @@ impl SimState {
             toolchain_ok: self.toolchain_ok,
             world: self.world.clone(),
             vehicle: self.vehicle.clone(),
+            simulator: self.simulator.clone(),
             make_target: worlds::make_target(&self.vehicle, &self.world),
             pid: self.pid,
             wind: self.wind,

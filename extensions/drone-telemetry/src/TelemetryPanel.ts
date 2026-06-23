@@ -114,6 +114,7 @@ export class TelemetryPanel {
     <span id="source-badge" class="badge hidden"></span>
     <span id="mode" class="pill">—</span>
     <span id="armed" class="pill pill--armed hidden">ARMED</span>
+    <button id="record" class="rec-btn" title="Record flight to a .tlog.jsonl">⏺ Record</button>
   </header>
 
   <div id="alarm" class="alarm hidden" role="alert"></div>

@@ -25,7 +25,7 @@ Transform the forked VS Code into a drone development cockpit:
 | 5     | Flight-log analysis (ULog)                      | ✅ Complete     |
 | 6     | Companion computer & ROS 2 integration          | ✅ Complete     |
 | 7     | Safety, pre-flight checks & mission scripting   | ✅ Complete     |
-| 8     | Polish & simulator-agnostic extensions          | ⬜ Not started  |
+| 8     | Polish & simulator-agnostic extensions          | ✅ Complete     |
 
 ---
 
@@ -128,8 +128,16 @@ flies the simulation. Details and verification in [`phase-7.md`](./phase-7.md).
   viewport shows them. (Notebook DSL rather than embedded MAVSDK-Python; dry-run
   fallback when no WebSocket is available.)
 
-## Phase 8 — Polish & Simulator-Agnostic Extensions
+## Phase 8 — Polish & Simulator-Agnostic Extensions ✅
 
-- Rust `SimControl` trait implemented for Gazebo / jMAVSim / AirSim; "Record
-  Flight" (`ros2 bag` / MAVLink log); profile telemetry pipeline for >1 kHz;
-  per-vehicle configuration profiles (fixed-wing, VTOL, rover).
+A `SimControl` trait (Gazebo/jMAVSim/AirSim), flight recording, a >1 kHz
+benchmark, and per-vehicle profiles. Details and verification in
+[`phase-8.md`](./phase-8.md).
+
+- **Simulator-agnostic:** `SimControl` trait + backends behind a `simulator`
+  picker; mock fallback when a simulator is unavailable.
+- **Record Flight:** maestros records telemetry to a `.tlog.jsonl` (cockpit
+  Record button); `ros2 bag` recording lives with the companion agent.
+- **>1 kHz:** `maestros --bench` profiles the pipeline (~37 k Hz measured).
+- **Per-vehicle profiles:** vehicle `class` (multirotor/vtol/fixedwing/rover) in
+  the catalogue + panel.

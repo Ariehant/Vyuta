@@ -17,6 +17,7 @@ use tokio::sync::{broadcast, oneshot, Mutex as AsyncMutex};
 use tokio::task::JoinHandle;
 use tokio::time::{interval, MissedTickBehavior};
 
+use crate::backend::{self, SimEnv};
 use crate::protocol::{AckFrame, Command, LogFrame, Outbound};
 use crate::state::{Phase, SimState};
 use crate::worlds;
@@ -80,9 +81,10 @@ impl SimManager {
             Command::Start {
                 world,
                 vehicle,
+                simulator,
                 headless,
                 mock,
-            } => self.start(world, vehicle, headless, mock).await,
+            } => self.start(world, vehicle, simulator, headless, mock).await,
             Command::Stop => self.stop("stopped by request").await,
             Command::Reset => self.reset().await,
             Command::SetWind {
@@ -99,6 +101,7 @@ impl SimManager {
         &self,
         world: Option<String>,
         vehicle: Option<String>,
+        simulator: Option<String>,
         headless: Option<bool>,
         mock: Option<bool>,
     ) -> AckFrame {
@@ -117,22 +120,31 @@ impl SimManager {
 
         let world = world.unwrap_or_else(|| self.cfg.default_world.clone());
         let vehicle = vehicle.unwrap_or_else(|| self.cfg.default_vehicle.clone());
+        let sim_id = simulator.unwrap_or_else(|| worlds::DEFAULT_SIMULATOR.to_string());
         let headless = headless.unwrap_or(true);
+
+        // Pick the simulator backend and check whether a real run is possible.
+        let sim = backend::backend(&sim_id);
+        let env = SimEnv {
+            px4_dir: self.cfg.px4_dir.as_deref(),
+            gz_bin: &self.cfg.gz_bin,
+        };
+        let real_possible = !self.cfg.force_mock && sim.available(&env);
 
         let use_mock = match mock {
             Some(true) => true,
             Some(false) => {
-                if self.detect_now() {
+                if real_possible {
                     false
                 } else {
                     self.log(
                         "sim",
-                        "real toolchain unavailable — falling back to mock".into(),
+                        format!("{} unavailable — falling back to mock", sim.label()),
                     );
                     true
                 }
             }
-            None => self.cfg.force_mock || !self.detect_now(),
+            None => self.cfg.force_mock || !real_possible,
         };
 
         // Re-seat state for this run.
@@ -140,6 +152,7 @@ impl SimManager {
             let mut s = self.state.lock().expect("state poisoned");
             s.world = world.clone();
             s.vehicle = vehicle.clone();
+            s.simulator = sim.id().to_string();
             s.mock = use_mock;
             s.phase = Phase::Starting;
             s.started = Some(Instant::now());
@@ -176,31 +189,27 @@ impl SimManager {
             return ack("start", true, "mock simulation started");
         }
 
-        // --- real PX4 SITL + Gazebo ------------------------------------------
-        let Some(px4_dir) = self.cfg.px4_dir.clone() else {
-            self.fail("start", "VYUTA_PX4_DIR is not set");
-            return ack("start", false, "VYUTA_PX4_DIR is not set");
-        };
+        // --- real simulator via the selected backend -------------------------
+        let spec = sim.launch(&vehicle, &world, headless, &env);
+        let invocation = format!("{} {}", spec.program, spec.args.join(" "));
 
-        let mut command = ProcCommand::new("make");
+        let mut command = ProcCommand::new(&spec.program);
         command
-            .arg("px4_sitl")
-            .arg(&target)
-            .current_dir(&px4_dir)
+            .args(&spec.args)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .kill_on_drop(true);
-        if headless {
-            command.env("HEADLESS", "1");
+        if let Some(cwd) = &spec.cwd {
+            command.current_dir(cwd);
+        }
+        for (k, v) in &spec.env {
+            command.env(k, v);
         }
 
         let mut child = match command.spawn() {
             Ok(c) => c,
             Err(e) => {
-                self.fail(
-                    "start",
-                    &format!("failed to spawn `make px4_sitl {target}`: {e}"),
-                );
+                self.fail("start", &format!("failed to spawn `{invocation}`: {e}"));
                 return ack("start", false, &format!("spawn failed: {e}"));
             }
         };
@@ -218,17 +227,11 @@ impl SimManager {
             let mut s = self.state.lock().expect("state poisoned");
             s.phase = Phase::Running;
             s.pid = pid;
-            s.message = format!(
-                "running `make px4_sitl {target}` (pid {})",
-                pid.unwrap_or(0)
-            );
+            s.message = format!("running `{invocation}` (pid {})", pid.unwrap_or(0));
         }
         self.log(
             "sim",
-            format!(
-                "▶ launched `make px4_sitl {target}` in {}",
-                px4_dir.display()
-            ),
+            format!("▶ launched `{invocation}` ({})", sim.label()),
         );
 
         let state = self.state.clone();
@@ -255,7 +258,7 @@ impl SimManager {
         });
         inner.stop_tx = Some(stop_tx);
         inner.run_task = Some(task);
-        ack("start", true, &format!("started `make px4_sitl {target}`"))
+        ack("start", true, &format!("started `{invocation}`"))
     }
 
     fn spawn_mock(&self, stop_rx: oneshot::Receiver<()>) -> JoinHandle<()> {
@@ -371,11 +374,6 @@ impl SimManager {
             self.log("sim", format!("» {note}"));
             ack("send_mavlink", true, &note)
         }
-    }
-
-    /// Re-detect the toolchain at start time (it may have appeared since boot).
-    fn detect_now(&self) -> bool {
-        !self.cfg.force_mock && detect_toolchain(&self.cfg)
     }
 
     fn log(&self, stream: &'static str, line: String) {

@@ -64,6 +64,7 @@ async fn handle(stream: TcpStream, peer: SocketAddr, manager: Arc<SimManager>) -
             Outbound::Catalog(CatalogFrame {
                 worlds: worlds_c,
                 vehicles: vehicles_c,
+                simulators: crate::backend::simulators(),
             })
             .to_json(),
         )

@@ -23,6 +23,9 @@ pub enum Command {
         world: Option<String>,
         #[serde(default)]
         vehicle: Option<String>,
+        /// Simulator backend id (`gazebo` | `jmavsim` | `airsim`). Default gazebo.
+        #[serde(default)]
+        simulator: Option<String>,
         /// Run the simulator headless (no Gazebo GUI). Defaults to `true`.
         #[serde(default)]
         headless: Option<bool>,
@@ -71,6 +74,7 @@ pub enum Outbound {
 pub struct CatalogFrame {
     pub worlds: Vec<CatalogEntry>,
     pub vehicles: Vec<CatalogEntry>,
+    pub simulators: Vec<CatalogEntry>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -78,6 +82,9 @@ pub struct CatalogEntry {
     pub id: &'static str,
     pub label: &'static str,
     pub description: &'static str,
+    /// Vehicle class for per-vehicle profiles (multirotor | vtol | fixedwing |
+    /// rover); empty for worlds/simulators.
+    pub class: &'static str,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -90,6 +97,8 @@ pub struct StatusFrame {
     pub toolchain_ok: bool,
     pub world: String,
     pub vehicle: String,
+    /// Selected simulator backend id.
+    pub simulator: String,
     /// `make` target the sidecar would run (or did run) for this combo.
     pub make_target: String,
     pub pid: Option<u32>,

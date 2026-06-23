@@ -57,6 +57,18 @@ body {
 }
 .pill--armed { background: #c62828; color: #fff; }
 
+.rec-btn {
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.3rem;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+.rec-btn.recording { background: #c62828; color: #fff; border-color: #c62828; }
+
 .hidden { display: none !important; }
 
 .alarm {

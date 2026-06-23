@@ -18,6 +18,7 @@
     sourceBadge: $("source-badge"),
     mode: $("mode"),
     armed: $("armed"),
+    record: $("record"),
     alarm: $("alarm"),
     gatewayUrl: $("gateway-url"),
     frameCount: $("frame-count"),
@@ -47,6 +48,8 @@
   window.addEventListener("resize", () => map.invalidate());
 
   let latest = null;
+  let socket = null;
+  let recording = false;
   let frameCount = 0;
   let rateWindow = [];
   let lastMapUpdate = 0;
@@ -191,9 +194,15 @@
       setStatus("connected", "connected");
       reconnectDelay = 500;
     });
+    socket = ws;
     ws.addEventListener("message", (ev) => {
       try {
-        latest = JSON.parse(ev.data);
+        const m = JSON.parse(ev.data);
+        if (m && m.type) {
+          if (m.type === "record_ack") onRecordAck(m);
+          return; // non-telemetry (typed) message
+        }
+        latest = m;
         frameCount++;
         rateWindow.push(performance.now());
         els.frameCount.textContent = String(frameCount);
@@ -217,6 +226,26 @@
   function scheduleReconnect() {
     setTimeout(connect, reconnectDelay);
     reconnectDelay = Math.min(reconnectDelay * 2, MAX_DELAY);
+  }
+
+  // ---- flight recording ---------------------------------------------------
+  function onRecordAck(m) {
+    if (m.recording) {
+      recording = true;
+      els.record.classList.add("recording");
+      els.record.textContent = "⏹ Stop";
+    } else {
+      recording = false;
+      els.record.classList.remove("recording");
+      els.record.textContent = "⏺ Record";
+      els.record.title = m.path ? "saved " + m.path : "Record flight";
+    }
+  }
+  if (els.record) {
+    els.record.addEventListener("click", () => {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return;
+      socket.send(JSON.stringify({ cmd: recording ? "record_stop" : "record_start" }));
+    });
   }
 
   connect();

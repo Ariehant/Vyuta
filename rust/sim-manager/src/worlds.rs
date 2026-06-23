@@ -20,11 +20,14 @@ pub struct Vehicle {
     pub label: &'static str,
     /// PX4 Gazebo model name used in the make target (after the `gz_` prefix).
     pub model: &'static str,
+    /// Vehicle class / profile: multirotor | vtol | fixedwing | rover.
+    pub class: &'static str,
     pub description: &'static str,
 }
 
 pub const DEFAULT_WORLD: &str = "default";
 pub const DEFAULT_VEHICLE: &str = "x500";
+pub const DEFAULT_SIMULATOR: &str = "gazebo";
 
 pub const WORLDS: &[World] = &[
     World {
@@ -58,24 +61,28 @@ pub const VEHICLES: &[Vehicle] = &[
         id: "x500",
         label: "x500 Quadcopter",
         model: "x500",
+        class: "multirotor",
         description: "Holybro X500 quad — the default PX4 multirotor.",
     },
     Vehicle {
         id: "standard_vtol",
         label: "Standard VTOL",
         model: "standard_vtol",
+        class: "vtol",
         description: "Quadplane VTOL (hover + fixed-wing cruise).",
     },
     Vehicle {
         id: "rc_cessna",
         label: "RC Cessna (plane)",
         model: "rc_cessna",
+        class: "fixedwing",
         description: "Fixed-wing aircraft.",
     },
     Vehicle {
         id: "r1_rover",
         label: "R1 Rover",
         model: "r1_rover",
+        class: "rover",
         description: "Ground rover (Aion R1).",
     },
 ];
@@ -131,6 +138,7 @@ pub fn catalog() -> (Vec<CatalogEntry>, Vec<CatalogEntry>) {
             id: w.id,
             label: w.label,
             description: w.description,
+            class: "",
         })
         .collect();
     let vehicles = VEHICLES
@@ -139,6 +147,7 @@ pub fn catalog() -> (Vec<CatalogEntry>, Vec<CatalogEntry>) {
             id: v.id,
             label: v.label,
             description: v.description,
+            class: v.class,
         })
         .collect();
     (worlds, vehicles)

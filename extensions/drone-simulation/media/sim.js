@@ -19,6 +19,9 @@ const els = {
   armed: $("armed"),
   world: $("world"),
   vehicle: $("vehicle"),
+  vehicleClass: $("vehicle-class"),
+  simulator: $("simulator"),
+  simBackend: $("sim-backend"),
   headless: $("headless"),
   forceMock: $("force-mock"),
   btnStart: $("btn-start"),
@@ -94,10 +97,19 @@ function fillSelect(sel, entries, preferred) {
 }
 
 // ---- frame handlers -------------------------------------------------------
+const vehicleClasses = {};
 function onCatalog(m) {
   fillSelect(els.world, m.worlds || [], cfg.defaultWorld);
   fillSelect(els.vehicle, m.vehicles || [], cfg.defaultVehicle);
+  fillSelect(els.simulator, m.simulators || [], "gazebo");
+  for (const v of m.vehicles || []) vehicleClasses[v.id] = v.class || "";
+  updateVehicleClass();
   catalogReady = true;
+}
+
+function updateVehicleClass() {
+  const c = vehicleClasses[els.vehicle.value] || "";
+  els.vehicleClass.textContent = c ? c : "";
 }
 
 function onStatus(m) {
@@ -106,6 +118,7 @@ function onStatus(m) {
   els.flightMode.textContent = m.flight_mode || "—";
   els.armed.classList.toggle("hidden", !m.armed);
   els.mockBadge.classList.toggle("hidden", !m.mock);
+  els.simBackend.textContent = m.simulator || "—";
   els.makeTarget.textContent = m.make_target || "—";
   els.pid.textContent = m.pid == null ? "—" : String(m.pid);
   els.simTime.textContent = numFmt(m.sim_time_s, 1, " s");
@@ -190,10 +203,12 @@ els.btnStart.addEventListener("click", () => {
     cmd: "start",
     world: catalogReady ? els.world.value : cfg.defaultWorld,
     vehicle: catalogReady ? els.vehicle.value : cfg.defaultVehicle,
+    simulator: catalogReady ? els.simulator.value : "gazebo",
     headless: els.headless.checked,
     mock: els.forceMock.checked ? true : null,
   });
 });
+els.vehicle.addEventListener("change", updateVehicleClass);
 els.btnStop.addEventListener("click", () => send({ cmd: "stop" }));
 els.btnReset.addEventListener("click", () => {
   send({ cmd: "reset" });

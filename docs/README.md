@@ -22,6 +22,8 @@ cockpit. See [`../FORK.md`](../FORK.md) for fork provenance.
   (introspection, colcon build, deploy) and a mini-rqt panel.
 - [`phase-7.md`](./phase-7.md) — safety & mission scripting: pre-flight checks
   gating arming, and `.mission` notebooks that fly the simulation.
+- [`phase-8.md`](./phase-8.md) — polish: simulator-agnostic backends, flight
+  recording, a >1 kHz benchmark, and per-vehicle profiles.
 
 ## Quick start (Phase 0)
 

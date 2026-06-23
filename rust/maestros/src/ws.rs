@@ -26,6 +26,7 @@ use tokio_tungstenite::tungstenite::Message;
 
 use crate::params::{ParamService, ParamStore};
 use crate::preflight;
+use crate::recorder::Recorder;
 use crate::telemetry::TelemetryState;
 
 const OUT_CAP: usize = 1024;
@@ -44,12 +45,15 @@ enum ClientCommand {
     Preflight,
     Arm,
     Disarm,
+    RecordStart,
+    RecordStop,
 }
 
 pub async fn serve(
     addr: SocketAddr,
     state: Arc<Mutex<TelemetryState>>,
     params: Arc<ParamService>,
+    recorder: Arc<Recorder>,
     emit_hz: f64,
     link_timeout: Duration,
 ) -> Result<()> {
@@ -60,19 +64,24 @@ pub async fn serve(
         let (stream, peer) = listener.accept().await?;
         let state = state.clone();
         let params = params.clone();
+        let recorder = recorder.clone();
         tokio::spawn(async move {
-            if let Err(err) = handle(stream, peer, state, params, emit_hz, link_timeout).await {
+            if let Err(err) =
+                handle(stream, peer, state, params, recorder, emit_hz, link_timeout).await
+            {
                 tracing::warn!(%peer, error = %err, "connection closed with error");
             }
         });
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn handle(
     stream: TcpStream,
     peer: SocketAddr,
     state: Arc<Mutex<TelemetryState>>,
     params: Arc<ParamService>,
+    recorder: Arc<Recorder>,
     emit_hz: f64,
     link_timeout: Duration,
 ) -> Result<()> {
@@ -125,7 +134,16 @@ async fn handle(
                     if param_task.is_none() {
                         param_task = Some(spawn_param_sync(params.store.clone(), out_tx.clone()));
                     }
-                    handle_command(cmd, &params, &state, link_timeout, &out_tx).await;
+                    handle_command(
+                        cmd,
+                        &params,
+                        &state,
+                        &recorder,
+                        emit_hz,
+                        link_timeout,
+                        &out_tx,
+                    )
+                    .await;
                 }
                 // Non-command text is ignored.
             }
@@ -145,10 +163,13 @@ async fn handle(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn handle_command(
     cmd: ClientCommand,
     params: &Arc<ParamService>,
     state: &Arc<Mutex<TelemetryState>>,
+    recorder: &Arc<Recorder>,
+    emit_hz: f64,
     link_timeout: Duration,
     out_tx: &mpsc::Sender<String>,
 ) {
@@ -245,6 +266,30 @@ async fn handle_command(
                         .to_string(),
                 )
                 .await;
+        }
+        ClientCommand::RecordStart => {
+            let msg = match recorder.start(state.clone(), emit_hz, link_timeout).await {
+                Ok(path) => {
+                    json!({"type":"record_ack","ok":true,"recording":true,"path":path,"message":"recording"})
+                }
+                Err(e) => {
+                    json!({"type":"record_ack","ok":false,"recording":recorder.status().recording,"message":e})
+                }
+            };
+            let _ = out_tx.send(msg.to_string()).await;
+        }
+        ClientCommand::RecordStop => {
+            let path = recorder.stop().await;
+            let frames = recorder.frames();
+            let msg = match path {
+                Some(p) => {
+                    json!({"type":"record_ack","ok":true,"recording":false,"path":p,"frames":frames,"message":"saved"})
+                }
+                None => {
+                    json!({"type":"record_ack","ok":false,"recording":false,"message":"not recording"})
+                }
+            };
+            let _ = out_tx.send(msg.to_string()).await;
         }
     }
 }

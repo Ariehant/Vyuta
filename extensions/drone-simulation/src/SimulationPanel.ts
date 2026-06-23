@@ -125,8 +125,12 @@ export class SimulationPanel {
           <select id="world"></select>
         </label>
         <label class="field">
-          <span>Vehicle</span>
+          <span>Vehicle <code id="vehicle-class" class="vclass"></code></span>
           <select id="vehicle"></select>
+        </label>
+        <label class="field">
+          <span>Simulator</span>
+          <select id="simulator"></select>
         </label>
         <label class="check"><input type="checkbox" id="headless" /> Headless (no Gazebo GUI)</label>
         <label class="check"><input type="checkbox" id="force-mock" /> Force mock flight</label>
@@ -136,6 +140,7 @@ export class SimulationPanel {
           <button id="btn-reset" class="btn">↺ Reset</button>
         </div>
         <dl class="readout">
+          <dt>Simulator</dt><dd id="sim-backend">—</dd>
           <dt>Target</dt><dd id="make-target">—</dd>
           <dt>PID</dt><dd id="pid">—</dd>
           <dt>Sim time</dt><dd id="sim-time">—</dd>

@@ -14,6 +14,7 @@
 //!   VYUTA_SIM_WORLD    Default world id              (default: default)
 //!   VYUTA_SIM_VEHICLE  Default vehicle id            (default: x500)
 
+mod backend;
 mod manager;
 mod mock;
 mod protocol;
